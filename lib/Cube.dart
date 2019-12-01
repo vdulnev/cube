@@ -41,12 +41,12 @@ class CubePainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint();
     paint.color = offColor;
-    Size onSize = Size(size.width * cos(angle), size.height);
-    canvas.drawRect(Offset.zero & onSize, paint);
+    Size offSize = Size(size.width * cos(angle), size.height);
+    canvas.drawRect(Offset.zero & offSize, paint);
     paint.color = onColor;
-    Size offSize = Size(size.width - onSize.width, size.height);
-    Offset offOffset = Offset(size.width - offSize.width, 0);
-    canvas.drawRect(offOffset & offSize, paint);
+    Size onSize = Size(size.width - offSize.width, size.height);
+    Offset offOffset = Offset(size.width - onSize.width, 0);
+    canvas.drawRect(offOffset & onSize, paint);
   }
 
   @override
