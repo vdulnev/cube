@@ -3,19 +3,18 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class Cube extends StatelessWidget {
-  final double width;
-  final double height;
+  final double size;
   final double angle;
 
-  Cube(this.width, this.height, this.angle);
+  Cube(this.size, this.angle);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
       SizedBox(
-      width: width,
-      height: height,
+      width: size,
+      height: size,
       child: CustomPaint(
           painter: CubePainter(
               Color.fromRGBO(255, 0, 0, 1.0),

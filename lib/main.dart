@@ -1,8 +1,6 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 
-import 'Cube.dart';
+import 'CubeSwitch.dart';
 
 void main() => runApp(MyApp());
 
@@ -94,7 +92,7 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Center(
-              child: Cube(100, 100, pi/3),
+              child: CubeSwitch(100),
             )
           ],
         ),
