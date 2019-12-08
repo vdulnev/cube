@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'CubeSwitch.dart';
@@ -47,14 +49,17 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-    });
+  final StreamController<SwitchState> _streamController = StreamController();
+  SwitchState currentState;
+  var isEnabled = true;
+
+  void _switch() {
+    if (currentState == SwitchState.on) {
+      _streamController.add(SwitchState.off);
+    } else {
+      _streamController.add(SwitchState.on);
+    }
+    setState(() { isEnabled = false; });
   }
 
   @override
@@ -65,6 +70,12 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
+    var cubeSwitch = CubeSwitch(100, stream: _streamController.stream);
+    cubeSwitch.getOutputStream().listen((state) {
+      isEnabled = state != currentState;
+      currentState = state;
+      setState(() {});
+    });
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -92,15 +103,16 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Center(
-              child: CubeSwitch(100),
+              child: cubeSwitch,
             )
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
+        onPressed: isEnabled ? _switch : null,
+        tooltip: 'Switch',
         child: Icon(Icons.add),
+        backgroundColor: isEnabled ? Theme.of(context).accentColor : Theme.of(context).disabledColor,
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

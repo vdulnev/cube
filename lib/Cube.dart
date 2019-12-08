@@ -15,16 +15,20 @@ class Cube extends StatelessWidget {
       SizedBox(
       width: size,
       height: size,
-      child: CustomPaint(
-          painter: CubePainter(
-              Color.fromRGBO(255, 0, 0, 1.0),
-              Color.fromRGBO(0, 255, 0, 1.0),
-              angle),
-        ),
+      child: buildCube(angle),
       ),
       ],
       mainAxisSize: MainAxisSize.min,
     );
+  }
+
+  CustomPaint buildCube(double angle) {
+    return CustomPaint(
+        painter: CubePainter(
+            Color.fromRGBO(255, 0, 0, 1.0),
+            Color.fromRGBO(0, 255, 0, 1.0),
+            angle),
+      );
   }
 }
 
@@ -50,6 +54,6 @@ class CubePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(CustomPainter oldDelegate) {
-    return false;
+    return true;
   }
 }
