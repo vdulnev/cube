@@ -47,20 +47,33 @@ class MyHomePage extends StatefulWidget {
   _MyHomePageState createState() => _MyHomePageState();
 }
 
+class _AppBloc {
+  final StreamController<Object> buttonClickSink = StreamController();
+  final StreamController<SwitchState> cubeStateSink = StreamController();
+  final StreamController<bool> buttonStateSink = StreamController();
+  var _isButtonEnabled = true;
+  SwitchState currentState;
+
+  _AppBloc() {
+    buttonClickSink.stream.listen((object) => _switchState());
+  }
+
+  void dispose() {
+    buttonClickSink.close();
+    cubeStateSink.close();
+    buttonStateSink.close();
+  }
+
+  _switchState() {
+    _isButtonEnabled = !_isButtonEnabled;
+    buttonStateSink.add(_isButtonEnabled);
+  }
+
+}
+
 class _MyHomePageState extends State<MyHomePage> {
 
-  final StreamController<SwitchState> _streamController = StreamController();
-  SwitchState currentState;
-  var isEnabled = true;
-
-  void _switch() {
-    if (currentState == SwitchState.on) {
-      _streamController.add(SwitchState.off);
-    } else {
-      _streamController.add(SwitchState.on);
-    }
-    setState(() { isEnabled = false; });
-  }
+  final _bloc = _AppBloc();
 
   @override
   Widget build(BuildContext context) {
@@ -70,12 +83,6 @@ class _MyHomePageState extends State<MyHomePage> {
     // The Flutter framework has been optimized to make rerunning build methods
     // fast, so that you can just rebuild anything that needs updating rather
     // than having to individually change instances of widgets.
-    var cubeSwitch = CubeSwitch(100, stream: _streamController.stream);
-    cubeSwitch.getOutputStream().listen((state) {
-      isEnabled = state != currentState;
-      currentState = state;
-      setState(() {});
-    });
     return Scaffold(
       appBar: AppBar(
         // Here we take the value from the MyHomePage object that was created by
@@ -103,17 +110,31 @@ class _MyHomePageState extends State<MyHomePage> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             Center(
-              child: cubeSwitch,
+              child: CubeSwitch(100, stream: _bloc.cubeStateSink.stream),
             )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: isEnabled ? _switch : null,
-        tooltip: 'Switch',
-        child: Icon(Icons.add),
-        backgroundColor: isEnabled ? Theme.of(context).accentColor : Theme.of(context).disabledColor,
+      floatingActionButton: StreamBuilder<bool>(
+        stream: _bloc.buttonStateSink.stream,
+        initialData: true,
+        builder: (context, snapShot) {
+          return FloatingActionButton(
+            onPressed: snapShot.data ? () {_bloc.buttonClickSink.add(Object());} : null,
+            tooltip: 'Switch',
+            child: Icon(Icons.add),
+            backgroundColor: snapShot.data ? Theme.of(context).accentColor : Theme.of(context).disabledColor,
+          );
+        },
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  @override
+  void dispose() {
+    _bloc.dispose();
+    super.dispose();
+  }
+
+
 }
