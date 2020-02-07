@@ -2,20 +2,34 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-class Cube extends StatelessWidget {
+class CubeState {
   final double size;
   final double angle;
 
-  Cube(this.size, this.angle);
+  CubeState(this.size, this.angle);
+  CubeState.newAngle(CubeState oldState, double angle): this(oldState.size, angle);
+}
+
+extension CubeStateCopy on CubeState {
+  CubeState setAngle(double angle) {
+    return CubeState(this.size, angle);
+  }
+}
+
+class Cube extends StatelessWidget {
+
+  final CubeState _state;
+
+  Cube(this._state);
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: <Widget>[
       SizedBox(
-      width: size,
-      height: size,
-      child: buildCube(angle),
+      width: _state.size,
+      height: _state.size,
+      child: buildCube(_state.angle),
       ),
       ],
       mainAxisSize: MainAxisSize.min,

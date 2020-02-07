@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/widgets.dart';
@@ -7,54 +6,69 @@ import 'Cube.dart';
 
 enum SwitchState { on, off }
 
-class CubeSwitch extends StatefulWidget {
-  final double size;
+class CubeSwitchState {
+  final CubeState cubeState;
   final SwitchState state;
-  final Stream<SwitchState> stream;
-  final StreamController<SwitchState> _outputController = StreamController();
 
-  CubeSwitch(this.size, {this.state = SwitchState.off, this.stream});
+  CubeSwitchState(this.cubeState, this.state);
+}
+
+extension CubeSwitchStateCopy on CubeSwitchState {
+  CubeSwitchState setSwitchState(SwitchState switchState) {
+    return CubeSwitchState(this.cubeState, switchState);
+  }
+  CubeSwitchState setCubeState(CubeState cubeState) {
+    return CubeSwitchState(cubeState, this.state);
+  }
+  CubeSwitchState setAngle(double angle) {
+    return CubeSwitchState(this.cubeState.setAngle(angle), this.state);
+  }
+}
+
+class CubeSwitchController {
+  _CubeSwitchState _cubeSwitchState;
+
+  void start() {
+    _cubeSwitchState.start();
+  }
+}
+
+class CubeSwitch extends StatefulWidget {
+  final CubeSwitchController _controller;
+  final CubeSwitchState _cubeSwitchState;
+
+  CubeSwitch(this._cubeSwitchState, this._controller);
+
+  CubeSwitch.fromSize(double size, CubeSwitchController controller): this(CubeSwitchState(CubeState(size, 0), SwitchState.off), controller);
 
   @override
   _CubeSwitchState createState() {
-    _outputController.add(state);
     return _CubeSwitchState(
-        size, state, stream, _outputController);
+        _cubeSwitchState, _controller);
   }
-
-  Stream<SwitchState> getOutputStream() {
-    return _outputController.stream;
-  }
-
 }
 
 class _CubeSwitchState extends State<CubeSwitch>
     with SingleTickerProviderStateMixin {
-  double size;
-  SwitchState _state;
-  Stream<SwitchState> stream;
-  StreamController<SwitchState> _streamController;
+  final CubeSwitchController cubeSwitchController;
+  CubeSwitchState _cubeSwitchState;
   AnimationController controller;
   Animation<double> animation;
 
-  _CubeSwitchState(this.size, this._state, this.stream, this._streamController);
+  _CubeSwitchState(this._cubeSwitchState, this.cubeSwitchController){
+    cubeSwitchController._cubeSwitchState = this;
+  }
 
   @override
   void initState() {
     super.initState();
     controller = AnimationController(
         duration: const Duration(milliseconds: 5000), vsync: this);
-    animation = _createAnimation(_state);
-    if (stream != null) {
-      stream.listen((SwitchState newSate) {
-        print(newSate);
-        _alter();
-      });
-    }
+    animation = _createAnimation(_cubeSwitchState.state);
   }
 
-  void _alter() {
-    if (_state == SwitchState.on) {
+  void start() {
+    if (_cubeSwitchState.state == SwitchState.on) {
       _turnOff();
     } else {
       _turnOn();
@@ -62,7 +76,7 @@ class _CubeSwitchState extends State<CubeSwitch>
   }
 
   void _turnOn() {
-    if (_state == SwitchState.on ||
+    if (_cubeSwitchState.state == SwitchState.on ||
         animation.status == AnimationStatus.forward) {
       print("_turnOn skipped");
       return;
@@ -73,7 +87,7 @@ class _CubeSwitchState extends State<CubeSwitch>
   }
 
   void _turnOff() {
-    if (_state == SwitchState.off ||
+    if (_cubeSwitchState.state == SwitchState.off ||
         animation.status == AnimationStatus.reverse) {
       print("_turnOff skipped");
       return;
@@ -86,20 +100,19 @@ class _CubeSwitchState extends State<CubeSwitch>
   Animation<double> _createAnimation(SwitchState finalState) {
     return Tween<double>(begin: 0.0, end: pi / 2.0).animate(controller)
       ..addListener(() {
-        setState(() {});
+        setState(() {_cubeSwitchState = _cubeSwitchState.setAngle(animation.value);});
       })
       ..addStatusListener((status) {
         if (status == AnimationStatus.completed ||
             status == AnimationStatus.dismissed) {
-          _state = finalState;
-          _streamController.add(_state);
+          _cubeSwitchState = _cubeSwitchState.setSwitchState(finalState);
         }
       });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Cube(size, animation.value);
+    return Cube(_cubeSwitchState.cubeState);
   }
 
   @override
